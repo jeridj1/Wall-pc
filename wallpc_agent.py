@@ -51,7 +51,7 @@ CONFIG = load_config()
 TOKEN = CONFIG["token"]
 
 def safe_job_view(job: dict) -> dict:
-    return {k: v for k, v in job.items() if k != "command"}
+    return dict(job)
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "WallPC/0.1"
@@ -225,7 +225,7 @@ $("jobs").innerHTML=d.jobs.length?"":"No commands queued.";
 for(let j of d.jobs){let el=document.createElement("section");el.className="job";
 let h=document.createElement("h3");h.textContent=j.title+" · "+j.status;el.append(h);
 let id=document.createElement("small");id.textContent=j.id;el.append(id);
-if(j.status==="pending"){let p=document.createElement("pre");p.textContent="Command is queued. Approval runs the submitted command exactly as supplied.";el.append(p);
+if(j.status==="pending"){let p=document.createElement("pre");p.textContent=j.command;el.append(p);
 let b=document.createElement("button");b.textContent="Approve and execute";b.onclick=async()=>{if(confirm("Execute this command on this computer?")){await api("/api/jobs/"+j.id+"/approve","POST",{});refresh()}};el.append(b)}
 if(j.result){let p=document.createElement("pre");p.textContent=j.result;el.append(p)}
 $("jobs").append(el)}
