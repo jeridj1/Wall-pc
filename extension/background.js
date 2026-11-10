@@ -27,6 +27,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })().catch(error => sendResponse({ ok: false, error: error.message }));
     return true;
   }
+  if (message?.type === "WALLPC_GET_JOBS") {
+    api("/api/jobs").then(data => sendResponse({ ok: true, data }))
+      .catch(error => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
   if (message?.type === "WALLPC_STATUS") {
     api("/api/status").then(data => sendResponse({ ok: true, data }))
       .catch(error => sendResponse({ ok: false, error: error.message }));
