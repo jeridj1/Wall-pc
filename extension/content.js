@@ -60,6 +60,19 @@
     getPanel().prepend(item);
   }
 
+
+  function checkActivation(root) {
+    const phrase = (root.innerText || "").trim().replace(/[.!?]+$/, "").trim().toLowerCase();
+    const armed = phrase === "activate wall computer";
+    const disarmed = phrase === "deactivate wall computer";
+    if (!armed && !disarmed) return;
+    chrome.runtime.sendMessage({ type: "WALLPC_ARM", armed }, response => {
+      if (chrome.runtime.lastError) show("Activation control error: " + chrome.runtime.lastError.message);
+      else if (response?.ok) show(response.data.armed ? "Wall-PC ARMED. Command blocks can be queued." : "Wall-PC DISARMED. Command processing is locked.");
+      else show("Activation control failed: " + (response?.error || "Unknown error"));
+    });
+  }
+
   function inspect(root) {
     const text = root.innerText || "";
     marker.lastIndex = 0;
@@ -99,13 +112,15 @@
   const observer = new MutationObserver(records => {
     for (const record of records) for (const node of record.addedNodes) {
       if (node.nodeType !== Node.ELEMENT_NODE) continue;
-      const el = node.matches?.("[data-message-author-role='assistant']")
-        ? node : node.querySelector?.("[data-message-author-role='assistant']");
+      const role = node.getAttribute?.("data-message-author-role");
+      if (role === "user") checkActivation(node);
+      const el = role === "assistant" ? node : node.querySelector?.("[data-message-author-role='assistant']");
       if (el) inspect(el);
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });
   document.querySelectorAll("[data-message-author-role='assistant']").forEach(inspect);
+  document.querySelectorAll("[data-message-author-role='user']").forEach(checkActivation);
   show("Wall-PC bridge loaded. Explicit wallpc command blocks are monitored.");
   setInterval(pollJobs, 3500);
 })();
