@@ -1,0 +1,25 @@
+name: Validate Wall-PC
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Compile Python
+        run: python -m py_compile wallpc_agent.py
+      - name: Validate extension manifest
+        run: python -m json.tool extension/manifest.json > /dev/null
+      - name: Check extension JavaScript
+        run: |
+          node --check extension/background.js
+          node --check extension/content.js
+          node --check extension/popup.js
