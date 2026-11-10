@@ -113,14 +113,14 @@
     for (const record of records) for (const node of record.addedNodes) {
       if (node.nodeType !== Node.ELEMENT_NODE) continue;
       const role = node.getAttribute?.("data-message-author-role");
-      if (role === "user") checkActivation(node);
-      const el = role === "assistant" ? node : node.querySelector?.("[data-message-author-role='assistant']");
-      if (el) inspect(el);
+      const userEl = role === "user" ? node : node.querySelector?.("[data-message-author-role='user']");
+      if (userEl) checkActivation(userEl);
+      const assistantEl = role === "assistant" ? node : node.querySelector?.("[data-message-author-role='assistant']");
+      if (assistantEl) inspect(assistantEl);
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });
   document.querySelectorAll("[data-message-author-role='assistant']").forEach(inspect);
-  document.querySelectorAll("[data-message-author-role='user']").forEach(checkActivation);
   show("Wall-PC bridge loaded. Explicit wallpc command blocks are monitored.");
   setInterval(pollJobs, 3500);
 })();
