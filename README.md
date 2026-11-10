@@ -12,7 +12,7 @@ The browser extension watches assistant messages for explicit wallpc JSON blocks
 
 ## Security model
 
-This is deliberately an approval-first prototype. A command in chat is not executed merely because it exists. The local dashboard requires an explicit approval click. The agent binds only to localhost, uses a random token, and imposes a command timeout. Do not expose its port to your LAN or the internet.
+This is deliberately an approval-first prototype. A command in chat is not executed merely because it exists. The local dashboard requires an explicit approval click. The agent binds only to localhost, uses a random token, starts disarmed, and imposes a command timeout. Do not expose its port to your LAN or the internet.
 
 This is a bridge, not an OpenAI API client. It uses the signed-in ChatGPT web page and does not require an API key.
 
@@ -52,7 +52,9 @@ Only assistant messages containing a fenced wallpc JSON block are recognized:
       "command": "pwd"
     }
 
-The command is queued locally. Review it at the dashboard and approve it there. After execution, the extension offers the result for insertion into the ChatGPT composer. You decide whether to send it.
+Say "activate wall computer" as a standalone message in the monitored ChatGPT conversation to arm command processing. Say "deactivate wall computer" to lock it again. The agent starts disarmed. Old conversation history is not used to arm it on page load.
+
+When armed, a command is queued locally. Review the exact command at the dashboard and approve it there. After execution, the extension displays the result and offers an Insert result button. You decide whether to send it.
 
 ## Current scope
 
