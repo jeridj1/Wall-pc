@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+body{font:14px system-ui;width:290px;padding:12px;background:#172033;color:#fff}
+input{box-sizing:border-box;width:100%;padding:8px;margin:8px 0;background:#0b1220;color:white;border:1px solid #526078;border-radius:6px}
+button{padding:8px 12px;margin:4px 4px 4px 0;border:0;border-radius:6px;background:#2563eb;color:white}
+label{display:flex;gap:8px;align-items:center}#status{color:#aab8d0;white-space:pre-wrap}
+</style></head><body>
+<h3>Wall-PC Bridge</h3>
+<label><input id="enabled" type="checkbox" style="width:auto"> Monitor ChatGPT</label>
+<label for="token">Local agent token</label><input id="token" type="password" placeholder="Paste token from wallpc_agent.py">
+<button id="save">Save</button><button id="test">Test connection</button>
+<p id="status">Not configured.</p>
+<script src="popup.js"></script>
+</body></html>
