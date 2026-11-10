@@ -20,6 +20,7 @@ COMMAND_TIMEOUT = 60
 MAX_COMMAND_LENGTH = 8000
 LOCK = threading.RLock()
 JOBS: dict[str, dict] = {}
+ARMED = False
 
 def config_path() -> Path:
     if os.name == "nt":
@@ -105,7 +106,7 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 counts = {s: sum(1 for j in JOBS.values() if j["status"] == s)
                           for s in ("pending", "approved", "running", "complete", "failed")}
-            self._json(200, {"ok": True, "platform": sys.platform, "jobs": counts})
+            self._json(200, {"ok": True, "platform": sys.platform, "armed": ARMED, "jobs": counts})
             return
         if path == "/api/jobs":
             with LOCK:
@@ -134,7 +135,16 @@ class Handler(BaseHTTPRequestHandler):
             self._json(400, {"error": str(exc)})
             return
 
+        if path == "/api/arm":
+            global ARMED
+            ARMED = bool(data.get("armed", False))
+            self._json(200, {"ok": True, "armed": ARMED})
+            return
+
         if path == "/api/commands":
+            if not ARMED:
+                self._json(423, {"error": "Wall-PC is disarmed. Say activate wall computer first."})
+                return
             command = data.get("command")
             title = data.get("title", "ChatGPT requested command")
             if not isinstance(command, str) or not command.strip() or len(command) > MAX_COMMAND_LENGTH:
@@ -212,7 +222,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1020;padding:12px;
 </style></head><body>
 <h1>Wall-PC</h1><div class="muted">Local command bridge · approval required</div>
 <div class="panel"><label>Local access token<br><input id="token" type="password" autocomplete="off" placeholder="Paste token printed by wallpc_agent.py"></label>
-<button id="save">Save token</button><button id="refresh">Refresh</button><p id="status" class="muted">Not connected</p></div>
+<button id="save">Save token</button><button id="arm">Arm / Disarm</button><button id="refresh">Refresh</button><p id="status" class="muted">Not connected</p></div>
 <div id="jobs" class="panel">Enter your token to load the queue.</div>
 <script>
 const $=id=>document.getElementById(id);
@@ -220,8 +230,9 @@ let token=localStorage.getItem("wallpc_token")||"";$("token").value=token;
 async function api(path,method="GET",body){let r=await fetch(path,{method,headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});let j=await r.json();if(!r.ok)throw Error(j.error||r.status);return j}
 $("save").onclick=()=>{token=$("token").value.trim();localStorage.setItem("wallpc_token",token);refresh()};
 $("refresh").onclick=refresh;
+$("arm").onclick=async()=>{try{let s=await api("/api/status");await api("/api/arm","POST",{armed:!s.armed});refresh()}catch(e){$("status").textContent=e.message}};
 async function refresh(){if(!token){$("status").textContent="Paste the local token.";return}
-try{let s=await api("/api/status"),d=await api("/api/jobs");$("status").textContent="Connected · "+s.platform+" · "+JSON.stringify(s.jobs);
+try{let s=await api("/api/status"),d=await api("/api/jobs");$("status").textContent="Connected · "+s.platform+" · "+(s.armed?"ARMED":"DISARMED")+" · "+JSON.stringify(s.jobs);
 $("jobs").innerHTML=d.jobs.length?"":"No commands queued.";
 for(let j of d.jobs){let el=document.createElement("section");el.className="job";
 let h=document.createElement("h3");h.textContent=j.title+" · "+j.status;el.append(h);
