@@ -19,7 +19,9 @@ Optional fields:
 - id: a stable identifier used to avoid duplicate submissions within the current page session.
 - title: short human-readable description.
 
-The extension submits the command to the local agent. The agent queues it as pending. A person reviews the exact command and approves it in the local dashboard. The agent then executes it as the logged-in user, not as root or Administrator, with a 60-second timeout.
+The local agent starts disarmed. A standalone user message reading "activate wall computer" arms it; "deactivate wall computer" disarms it. These phrases are recognized when the browser extension observes newly added user messages, not by scanning old history.
+
+The extension submits the command to the local agent only while armed. The agent queues it as pending. A person reviews the exact command and approves it in the local dashboard. The agent then executes it as the logged-in user, not as root or Administrator, with a 60-second timeout.
 
 The result is displayed in the ChatGPT page. The extension can insert it into the composer, but does not press Send.
 
